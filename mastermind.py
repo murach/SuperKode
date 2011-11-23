@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# this program is licensed under GPLv3
+
 import sys
 from random import *
 from PyKDE4 import kdeui
@@ -11,55 +13,55 @@ class MMind(kdeui.KMainWindow):
 	def __init__(self, parent = None):
 		global active, led, codeled, hboxhintled, level1, level2, level3, level, colgrid, grid, colorled, complete, row, anz, anz_chosen, pause, highscore, aboutData
 		global appName, catalog, programName, version, description, license, copyright, text, homePage, bugEmail
-		
+
 		kdeui.KMainWindow.__init__(self)
-		
+
 		self.q = QtGui.QWidget(self)				#central widget
 		self.setCentralWidget(self.q)
 		self.setWindowIcon(QtGui.QIcon('KDE-Mastermind-Icon.png'))
 		#self.q.setStyleSheet("QWidget { background-image: No-Ones-Laughing-3.png} ")
-		
+
 		new = kdeui.KAction(kdeui.KIcon('document-new'), "&New", self)
 		new.setShortcut('Ctrl+N')
 		self.connect(new, QtCore.SIGNAL('triggered()'), self.new)
-		
+
 		close = kdeui.KAction(kdeui.KIcon('application-exit'), 'Exit', self)
 		close.setShortcut('Ctrl+Q')
 		self.connect(close, QtCore.SIGNAL('triggered()'), QtCore.SLOT('close()'))
-		
+
 		clear = kdeui.KAction(kdeui.KIcon('edit-clear-locationbar-ltr'), "Clear row", self)
 		clear.setShortcut("Ctrl+C")
 		self.connect(clear, QtCore.SIGNAL('triggered()'), self.clear)
-		
+
 		highscoreact = kdeui.KAction(kdeui.KIcon('games-highscores'), "Highscores", self)
 		highscoreact.setShortcut('Ctrl+H')
 		self.connect(highscoreact, QtCore.SIGNAL('triggered()'), self.highscorefkt)
-		
+
 		solve = kdeui.KAction(kdeui.KIcon('games-solve'), "Solve", self)
 		solve.setShortcut('Ctrl+Alt+S')
 		self.connect(solve, QtCore.SIGNAL('triggered()'), self.solve)
-		
+
 		submit = kdeui.KAction(kdeui.KIcon('games-endturn'), "Submit", self)
 		submit.setShortcut('Return')
 		self.connect(submit, QtCore.SIGNAL('triggered()'), self.submit)
-		
+
 		pause = kdeui.KAction(kdeui.KIcon('media-playback-pause'), "Pause", self)
 		pause.setShortcut("Ctrl+P")
 		self.connect(pause, QtCore.SIGNAL('triggered()'), self.pause)
-		
+
 		level1 = QtGui.QAction("Level &1", self)
 		level1.setCheckable(True)
 		level1.setChecked(True)
 		self.connect(level1, QtCore.SIGNAL('triggered()'), self.level1)
-		
+
 		level2 = QtGui.QAction("Level &2", self)
 		level2.setCheckable(True)
 		self.connect(level2, QtCore.SIGNAL('triggered()'), self.level2)
-		
+
 		level3 = QtGui.QAction("Level &3", self)
 		level3.setCheckable(True)
 		self.connect(level3, QtCore.SIGNAL('triggered()'), self.level3)
-		
+
 		menu = self.menuBar()
 		#menu = kdeui.KMenuBar(self)	doesn't really work -> why?
 		file = menu.addMenu('&File')
@@ -72,15 +74,15 @@ class MMind(kdeui.KMainWindow):
 		file.addAction(highscoreact)
 		file.addSeparator()
 		file.addAction(close)
-		
+
 		levelmenu = menu.addMenu('&Level')
 		levelmenu.addAction(level1)
 		levelmenu.addAction(level2)
 		levelmenu.addAction(level3)
-		
+
 		help = self.helpMenu()
 		menu.addMenu(help)
-		
+
 		self.toolbar = self.addToolBar("Exit")
 		#self.toolbar = kdeui.KToolBar(self)
 		self.toolbar.addAction(new)
@@ -92,15 +94,15 @@ class MMind(kdeui.KMainWindow):
 		self.toolbar.addAction(highscoreact)
 		self.toolbar.addSeparator()
 		self.toolbar.addAction(close)
-		
+
 		self.statusbar = self.statusBar()
 		#self.statusbar = kdeui.KStatusBar(self)
-		
+
 		start()				#function that sets the hidden code
-		
+
 		grid = QtGui.QGridLayout(self.q)
 		grid.setMargin(15)
-		
+
 		hline = QtGui.QFrame(self)
 		hline.setFrameStyle(QtGui.QFrame.HLine)
 		hboxcode = QtGui.QHBoxLayout()
@@ -109,24 +111,24 @@ class MMind(kdeui.KMainWindow):
 		solgrid.addWidget(sol, 0, 0, 1, 1)
 		solgrid.setMargin(5)
 		codeled = ["", "", "", ""]
-		
+
 		for i in range(0,4,1):
 			codeled[i] = kdeui.KLed()			#these are the four code-LEDs
 			codeled[i].setColor(QtGui.QColor('grey'))
 			codeled[i].setMinimumSize(30,30)
 			codeled[i].setMaximumSize(30,30)
 			hboxcode.addWidget(codeled[i])
-		
+
 		grid.addLayout(solgrid, 0, 2, 1, 1)
 		grid.addLayout(hboxcode, 0, 3, 1, 1)
-		
+
 		grid.addWidget(hline, 1, 3, 1, 2)
-		
+
 		hboxsol = []
 		hinthbox = []
 		hboxhintled = []
 		led = []
-		
+
 		for i in range(0,8,1):
 			hboxsol.append("")		#array of hboxlayouts. each line of 4 user-set LEDs is one hbox
 			hinthbox.append("")			#array of grids. each grid contains the rating-hint-LEDs
@@ -137,18 +139,18 @@ class MMind(kdeui.KMainWindow):
 			hboxhintled[i] = []
 			led.append("")
 			led[i] = []
-			
+
 			for j in range(0,4,1):
 				hboxhintled[i].append("")
 				hboxhintled[i][j] = kdeui.KLed()			#LEDs inside the rating-hint-grids
 				hboxhintled[i][j].setColor(QtGui.QColor('grey'))
-			
+
 			hinthbox[i].addWidget(hboxhintled[i][2], 0, 0)
 			hinthbox[i].addWidget(hboxhintled[i][3], 0, 1)
 			hinthbox[i].addWidget(hboxhintled[i][0], 1, 0)
 			hinthbox[i].addWidget(hboxhintled[i][1], 1, 1)
 			grid.addLayout(hinthbox[i], i+2, 2, 1, 1)
-			
+
 			for j in range(0,4,1):
 				led[i].append("")
 				led[i][j] = newLed(i+1, j)		#these are the LEDs the user can give the color
@@ -157,11 +159,11 @@ class MMind(kdeui.KMainWindow):
 				led[i][j].setMaximumSize(30,30)
 				led[i][j].clicked = 0
 				hboxsol[i].addWidget(led[i][j])
-			
+
 			grid.addLayout(hboxsol[i], i+2, 3, 1, 1)
-		
+
 		colgrid = QtGui.QGridLayout()				#grid-layout containing the available colors
-		
+
 		colorled = []
 		for i in range(0, 3+2*level,1):
 			colorled.append("")
@@ -175,23 +177,23 @@ class MMind(kdeui.KMainWindow):
 			if i > 2*level+1:
 				colgrid.addWidget(colorled[i],i,0,1,2)
 				#colorled[i].setAlignment(QtCore.Qt.AlignCenter)
-		
+
 		grid.addLayout(colgrid, 3, 0, 5, 1)
 		vline = QtGui.QFrame(self)
 		vline.setFrameStyle(QtGui.QFrame.VLine)
 		grid.addWidget(vline, 0, 1, 10, 1)
-		
+
 		spacer1 = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         	grid.addItem(spacer1, 10, 0, 1, 4)
 		spacer2 = QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         	grid.addItem(spacer2, 0, 3, 10, 1)
-		
+
 		self.q.setLayout(grid)
 		self.timer = QtCore.QTimer()
 		self.connect(self.timer, QtCore.SIGNAL('timeout()'), self.time)
 		self.statusbar.showMessage("00:00:00")
 		self.timer.start(1000)
-	
+
 	def pause(self):
 		global paused, led, color, pause
 		if paused == True:
@@ -213,18 +215,18 @@ class MMind(kdeui.KMainWindow):
 				for j in range(0,4,1):
 					led[i][j].setColor(QtGui.QColor('grey'))
 					codeled[j].setColor(QtGui.QColor('grey'))
-	
+
 	def submit(self):
 		global complete, row, led
-		
+
 		if led[row-1][0].clicked == 1 and led[row-1][1].clicked == 1 and led[row-1][2].clicked == 1 and led[row-1][3].clicked == 1:
 			complete = True
-		
+
 		if complete == True:
 			self.rate()
 			row -= 1
 			complete = False
-	
+
 	def solve(self):
 		global codeled, pos, row, lost
 		for i in range(0,4,1):
@@ -232,24 +234,24 @@ class MMind(kdeui.KMainWindow):
 		row = 0
 		self.timer.stop()
 		lost = 1
-	
+
 	def rate(self):
 		global row, active, led, level, anz, anz_chosen, score, secs
-		
+
 		anz_correct = 0
 		anz_correct_dummy = 0
 		anz_almost = 0
 		anz_hit = []
 		for i in range(0,3+2*level,1):
 			anz_hit.append(0)
-		
+
 		for i in range(0,4,1):
 			if pos2[i] == led[row-1][i].value:
 				anz_correct += 1
 				for j in range(0,3+2*level,1):
 					if pos2[i] == j:
 						anz_hit[j] += 1
-		
+
 		if anz_correct == 4:
 			anz_correct_dummy = 4
 			rowdummy = row
@@ -260,13 +262,13 @@ class MMind(kdeui.KMainWindow):
 				score = 0
 			self.timer.stop()
 			self.newhighscore()
-		
+
 		for i in range(0,3+2*level,1):
 			if anz[i] >= anz_chosen[i]:
 				anz_almost += anz_chosen[i] - anz_hit[i]
 			elif anz_chosen[i] > anz[i]:
 				anz_almost += anz[i] - anz_hit[i]
-		
+
 		for i in range(0,4,1):
 			if anz_correct != 0:
 				hboxhintled[row-1][i].setColor(QtGui.QColor('black'))
@@ -278,13 +280,13 @@ class MMind(kdeui.KMainWindow):
 				hboxhintled[row-1][i].setWhatsThis("One right color, but at the wrong place.")
 				hboxhintled[row-1][i].setToolTip("One right color, but at the wrong place.")
 				anz_almost -= 1
-		
+
 		for i in range(0,3+2*level, 1):
 			anz_chosen[i] = 0
-		
+
 		if anz_correct_dummy == 4:
 			row = 0
-	
+
 	def clear(self):
 		global row, led, level, anz_chosen
 		for i in range(0,4,1):
@@ -293,7 +295,7 @@ class MMind(kdeui.KMainWindow):
 			led[row-1][i].clicked = 0
 		for i in range(0,3+2*level,1):
 			anz_chosen[i] = 0
-	
+
 	def dialog(self, action):
 		global dlg, lost
 		if action == "level" and lost == 0:
@@ -304,10 +306,10 @@ class MMind(kdeui.KMainWindow):
 			dlg = kdeui.KMessageBox.questionYesNo(self, "You are about to quit this game. Are you sure?")
 		elif action == "new" and lost == 1:
 			dlg = 3
-	
+
 	def level1(self):
 		global active, level2, level3, level, colgrid, dlg, colorled, lost
-		
+
 		self.dialog("level")
 		if dlg == 3:
 			level1.setChecked(True)
@@ -322,10 +324,10 @@ class MMind(kdeui.KMainWindow):
 			lost = 0
 		else:
 			level1.setChecked(False)
-	
+
 	def level2(self):
 		global active, level1, level3, level, colgrid, dlg, colorled, lost
-		
+
 		self.dialog("level")
 		if dlg == 3:
 			level1.setChecked(False)
@@ -340,10 +342,10 @@ class MMind(kdeui.KMainWindow):
 			lost = 0
 		else:
 			level2.setChecked(False)
-	
+
 	def level3(self):
 		global active, level1, level2, level, colgrid, dlg, colorled, lost
-		
+
 		self.dialog("level")
 		if dlg == 3:
 			level1.setChecked(False)
@@ -358,11 +360,11 @@ class MMind(kdeui.KMainWindow):
 			lost = 0
 		else:
 			level3.setChecked(False)
-	
+
 	def highscorefkt(self):
 		self.newwin = highscorewindow()
 		self.newwin.show()
-	
+
 	def newhighscore(self):
 		global highscore, score, namestring, boldrow
 		dummy = 10
@@ -374,7 +376,7 @@ class MMind(kdeui.KMainWindow):
 			for j in range(9,dummy,-1):
 				highscore[j] = highscore[j-1]
 				namestring[j] = namestring[j-1]
-			highscore[dummy] = score	
+			highscore[dummy] = score
 			text, self.winnername = kdeui.KInputDialog.getText('Highscore!', 'Please enter your name:')
 			if self.winnername:
 				namestring[dummy] = unicode(text)
@@ -385,10 +387,10 @@ class MMind(kdeui.KMainWindow):
 			boldrow = dummy
 			self.highscorefkt()
 			dummy = 10
-		
+
 	def new(self):
 		global active, level, dlg
-		
+
 		self.dialog("new")
 		if dlg == 3:
 			self.coldel()
@@ -397,7 +399,7 @@ class MMind(kdeui.KMainWindow):
 				active.append(0)
 			start()
 			self.timer.start(1000)
-	
+
 	def reset(self):
 		global active, led, codeled, hboxhintled, level, colgrid, colorled, secs, lost
 		for i in range(0, 8, 1):
@@ -428,7 +430,7 @@ class MMind(kdeui.KMainWindow):
 		for i in range(0,3+2*level,1):
 			colorled[i].deleteLater()
 			colorled[i] = None
-	
+
 	def time(self):
 		global secs
 		secs += 1
@@ -453,15 +455,15 @@ class MMind(kdeui.KMainWindow):
 class KLedCustom(kdeui.KLed):
 	def __init__(self, lednumber, parent = None):
 		kdeui.KLed.__init__(self)
-		
+
 		self.i = lednumber
 		for j in range(0,3+2*level,1):
 			if lednumber == j:
-				self.setColor(QtGui.QColor(color[j]))	
-				
+				self.setColor(QtGui.QColor(color[j]))
+
 	def mousePressEvent(self, event):
 		global active, level
-		
+
 		for i in range(0,3+2*level,1):
 			if i == self.i:
 				active[i] = 1
@@ -476,10 +478,10 @@ class newLed(kdeui.KLed):
 		self.row = led_row
 		self.col = led_col
 		self.value = 0
-	
+
 	def mousePressEvent(self, event):
 		global row, active, level, anz_chosen
-		
+
 		for i in range(0,3+2*level,1):
 			if active[i] == 1 and self.row == row:
 				self.setColor(QtGui.QColor(color[i]))
@@ -492,7 +494,7 @@ class newLed(kdeui.KLed):
 
 def start():
 	global row, anz, anz_chosen, pos, pos2, level
-	
+
 	pos = []
 	pos2 = []
 	anz = []
@@ -501,14 +503,14 @@ def start():
 	for i in range(0,3+2*level,1):
 		anz.append(0)
 		anz_chosen.append(0)
-	
+
 	for i in range(0,4,1):
 		seed()
 		pos.append(0)
 		pos2.append(0)
 		pos[i] = randint(0,3+2*level-1)
 		pos2[i] = pos[i]
-		
+
 		for j in range(0,3+2*level,1):
 			if pos[i] == j:
 				pos[i] = color[j]
@@ -518,36 +520,36 @@ def start():
 class highscorewindow(kdeui.KMainWindow):
 	def __init__(self, parent = None):
 		global highscore, boldrow, namestring
-		
+
 		kdeui.KMainWindow.__init__(self)
-		
+
 		self.setWindowTitle("Highscores")
 		self.resize(350, 350)
-		
+
 		self.widget = QtGui.QWidget(self)
 		self.setCentralWidget(self.widget)
 		self.grid = QtGui.QGridLayout(self.widget)
 		self.grid.setSpacing(0)
-		
+
 		self.labelscore = []
 		self.labelnumber = []
 		self.namestrings = []
-		
+
 		for i in range(0,10,1):
 			self.labelscore.append("")
 			self.labelscore[i] = QtGui.QLabel(str(highscore[i]))
 			self.labelscore[i].setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
 			self.labelscore[i].setMargin(10)
-			
+
 			self.namestrings.append("")
 			self.namestrings[i] = QtGui.QLabel(namestring[i])
 			self.namestrings[i].setAlignment(QtCore.Qt.AlignCenter)
-			
+
 			self.labelnumber.append("")
 			self.labelnumber[i] = QtGui.QLabel("#" + str(i+1) + ":")
 			self.labelnumber[i].setAlignment(QtCore.Qt.AlignLeft | QtCore.Qt.AlignVCenter)
 			self.labelnumber[i].setMargin(10)
-			
+
 			if i%2 == 0 and i == boldrow:
 				self.labelscore[i].setStyleSheet("QLabel {background-color: darkgrey; font: bold} ")
 				self.namestrings[i].setStyleSheet("QLabel {background-color: darkgrey; font: bold} ")
@@ -560,12 +562,12 @@ class highscorewindow(kdeui.KMainWindow):
 				self.labelscore[i].setStyleSheet("QLabel {font: bold} ")
 				self.namestrings[i].setStyleSheet("QLabel {font: bold} ")
 				self.labelnumber[i].setStyleSheet("QLabel {font: bold} ")
-			
+
 			self.grid.addWidget(self.labelnumber[i], i, 0)
 			self.grid.addWidget(self.namestrings[i], i, 1)
 			self.grid.addWidget(self.labelscore[i], i, 2)
 		boldrow = 10
-		
+
 		self.widget.setLayout(self.grid)
 
 
@@ -577,7 +579,7 @@ description = kdecore.ki18n("A simple KDE4 Mastermind Game")
 license     = kdecore.KAboutData.License_GPL_V3
 copyright   = kdecore.ki18n("(c) 2009 Thomas Murach")
 text        = kdecore.ki18n("This is a KDE4-Mastermind game. \n Rules: Each black rating-stone means that there is one color at the right place.\n Each white stone means there is a correct color, but it is at a wrong place.\n")
-homePage    = "http://www.kde-apps.org/content/show.php?content=102968"
+#homePage    = "http://www.kde-apps.org/content/show.php?content=102968"
 bugEmail    = "asiasuppenesser@gmx.de"
 
 aboutData = kdecore.KAboutData(appName, catalog, programName, version, description, license, copyright, text, homePage, bugEmail)
@@ -621,8 +623,8 @@ try:
 		laufnr += 1								#
 	d.close()									#
 
-except:											# exception. only used if file 
-	pass										# can't be found. names and 
+except:											# exception. only used if file
+	pass										# can't be found. names and
 											# highscores get values from above
 
 app = kdeui.KApplication()			# application-name
